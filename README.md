@@ -14,6 +14,31 @@ pnpm dev
 bun dev
 ```
 
+## Authentication (Prisma + MySQL)
+
+This project includes example API routes and helpers to use Prisma with MySQL for authentication using JWT stored in an HttpOnly cookie.
+
+Quick setup:
+
+1. Copy `.env.example` to `.env` and set `DATABASE_URL` and `JWT_SECRET`.
+2. Install Prisma and auth dependencies:
+
+```bash
+npm install prisma @prisma/client bcryptjs jsonwebtoken cookie
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+3. Start the dev server: `npm run dev`.
+
+API endpoints added:
+
+- `POST /api/auth/register` — { name, email, password }
+- `POST /api/auth/login` — { email, password, remember }
+- `POST /api/auth/logout` — clears session cookie
+- `GET /api/auth/me` — returns current user or null
+
+Middleware protects the `(admin)` area and redirects unauthenticated or unauthorized users to the sign-in page.
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
