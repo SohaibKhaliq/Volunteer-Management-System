@@ -6,24 +6,19 @@ export function middleware(req) {
     const { pathname } = req.nextUrl;
 
     // protect admin area (app has layouts under (admin) folder)
-    if (pathname.startsWith('/(admin)') || pathname.startsWith('/admin')) {
+    if (pathname.startsWith('/admin')) {
         const cookie = req.cookies.get(process.env.AUTH_COOKIE_NAME || 'auth_token')?.value;
-        if (!cookie) {
-            const signInUrl = new URL('/auth-1/sign-in', req.url);
-            return NextResponse.redirect(signInUrl);
-        }
+        // build sign-in URL with `next` param so we can return the user after login
+        const signInUrl = new URL('/auth-1/sign-in', req.url);
+        signInUrl.searchParams.set('next', `${req.nextUrl.pathname}${req.nextUrl.search}`);
+
+        if (!cookie) return NextResponse.redirect(signInUrl);
 
         const payload = verifyJwt(cookie);
-        if (!payload) {
-            const signInUrl = new URL('/auth-1/sign-in', req.url);
-            return NextResponse.redirect(signInUrl);
-        }
+        if (!payload) return NextResponse.redirect(signInUrl);
 
         const parsed = jwtPayloadSchema.safeParse(payload);
-        if (!parsed.success || parsed.data.role !== 'ADMIN') {
-            const signInUrl = new URL('/auth-1/sign-in', req.url);
-            return NextResponse.redirect(signInUrl);
-        }
+        if (!parsed.success || parsed.data.role !== 'ADMIN') return NextResponse.redirect(signInUrl);
     }
 
     return NextResponse.next();
