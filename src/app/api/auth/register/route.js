@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { hashPassword, signJwt, createTokenCookie } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { registerSchema } from '@/lib/schemas/auth';
@@ -14,6 +14,7 @@ export async function POST(request) {
         const { name, email, password } = parsed.data;
         const normalizedEmail = email.toLowerCase();
 
+        const prisma = await getPrisma();
         const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
         if (existing) {
             return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
