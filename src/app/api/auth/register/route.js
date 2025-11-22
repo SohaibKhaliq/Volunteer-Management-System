@@ -1,22 +1,26 @@
 import prisma from '@/lib/prisma';
 import { hashPassword, signJwt, createTokenCookie } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { registerSchema } from '@/lib/schemas/auth';
 
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { name, email, password } = body;
-        if (!email || !password) {
-            return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+        const parsed = registerSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Invalid input', issues: parsed.error.format() }, { status: 422 });
         }
 
-        const existing = await prisma.user.findUnique({ where: { email } });
+        const { name, email, password } = parsed.data;
+        const normalizedEmail = email.toLowerCase();
+
+        const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
         if (existing) {
             return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
         }
 
         const hashed = await hashPassword(password);
-        const user = await prisma.user.create({ data: { name, email, password: hashed } });
+        const user = await prisma.user.create({ data: { name, email: normalizedEmail, password: hashed } });
 
         const token = signJwt({ userId: user.id, role: user.role, email: user.email, name: user.name });
         const cookie = createTokenCookie(token);
