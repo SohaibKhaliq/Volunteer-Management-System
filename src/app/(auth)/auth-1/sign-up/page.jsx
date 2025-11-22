@@ -7,16 +7,31 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card, Col, Container, Form, FormControl, FormLabel, Row } from 'react-bootstrap';
+import { registerSchema } from '@/lib/schemas/auth';
 const Page = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const router = useRouter();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
+    // client-side validation
+    const parsed = registerSchema.safeParse({ name, email, password });
+    if (!parsed.success) {
+      // map zod fieldErrors to simple messages
+      const flat = parsed.error.flatten();
+      const map = {};
+      for (const key in flat.fieldErrors) {
+        map[key] = flat.fieldErrors[key].join(', ');
+      }
+      setFieldErrors(map);
+      return;
+    }
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -25,6 +40,15 @@ const Page = () => {
       });
       const data = await res.json();
       if (!res.ok) {
+        // map server validation issues if present
+        if (data.issues) {
+          const map = {};
+          for (const k in data.issues) {
+            const v = data.issues[k];
+            if (v && v._errors) map[k] = v._errors.join(', ');
+          }
+          setFieldErrors(map);
+        }
         setError(data.error || 'Registration failed');
         return;
       }
@@ -64,6 +88,7 @@ const Page = () => {
                     Name <span className="text-danger">*</span>
                   </FormLabel>
                   <FormControl value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Damian D." required />
+                  {fieldErrors.name && <div className="invalid-feedback d-block">{fieldErrors.name}</div>}
                 </div>
 
                 <div className="mb-3 form-group">
@@ -71,10 +96,12 @@ const Page = () => {
                     Email address <span className="text-danger">*</span>
                   </FormLabel>
                   <FormControl value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="you@example.com" required />
+                  {fieldErrors.email && <div className="invalid-feedback d-block">{fieldErrors.email}</div>}
                 </div>
 
                 <div className="mb-3">
                   <PasswordInputWithStrength id="password" label="Password" name="password" password={password} setPassword={setPassword} placeholder="••••••••" />
+                  {fieldErrors.password && <div className="invalid-feedback d-block">{fieldErrors.password}</div>}
                 </div>
 
                 <div className="mb-3">
