@@ -20,7 +20,3 @@ export const jwtPayloadSchema = z.object({
     iat: z.number().optional(),
     exp: z.number().optional()
 });
-
-export type RegisterInput = z.infer<typeof registerSchema>;
-export type LoginInput = z.infer<typeof loginSchema>;
-export type JwtPayload = z.infer<typeof jwtPayloadSchema>;
