@@ -6,17 +6,28 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card, Col, Container, Form, FormControl, FormLabel, Row } from 'react-bootstrap';
+import { loginSchema } from '@/lib/schemas/auth';
 
 const Page = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const router = useRouter();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
+    const parsed = loginSchema.safeParse({ email, password, remember });
+    if (!parsed.success) {
+      const flat = parsed.error.flatten();
+      const map = {};
+      for (const key in flat.fieldErrors) map[key] = flat.fieldErrors[key].join(', ');
+      setFieldErrors(map);
+      return;
+    }
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -25,6 +36,14 @@ const Page = () => {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.issues) {
+          const map = {};
+          for (const k in data.issues) {
+            const v = data.issues[k];
+            if (v && v._errors) map[k] = v._errors.join(', ');
+          }
+          setFieldErrors(map);
+        }
         setError(data.error || 'Login failed');
         return;
       }
