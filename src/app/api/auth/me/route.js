@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTokenFromRequest, verifyJwt } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(request) {
     const token = getTokenFromRequest(request);
@@ -9,6 +9,7 @@ export async function GET(request) {
     const payload = verifyJwt(token);
     if (!payload) return NextResponse.json({ user: null }, { status: 200 });
 
+    const prisma = await getPrisma();
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (!user) return NextResponse.json({ user: null }, { status: 200 });
 
