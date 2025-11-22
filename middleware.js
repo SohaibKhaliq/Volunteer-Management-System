@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyJwt } from './src/lib/auth';
+import { jwtPayloadSchema } from './src/lib/schemas/auth';
 
 export function middleware(req) {
     const { pathname } = req.nextUrl;
@@ -13,7 +14,13 @@ export function middleware(req) {
         }
 
         const payload = verifyJwt(cookie);
-        if (!payload || payload.role !== 'ADMIN') {
+        if (!payload) {
+            const signInUrl = new URL('/auth-1/sign-in', req.url);
+            return NextResponse.redirect(signInUrl);
+        }
+
+        const parsed = jwtPayloadSchema.safeParse(payload);
+        if (!parsed.success || parsed.data.role !== 'ADMIN') {
             const signInUrl = new URL('/auth-1/sign-in', req.url);
             return NextResponse.redirect(signInUrl);
         }
