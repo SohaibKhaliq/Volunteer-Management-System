@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { comparePassword, signJwt, createTokenCookie } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { loginSchema } from '@/lib/schemas/auth';
@@ -14,6 +14,7 @@ export async function POST(request) {
         const { email, password, remember } = parsed.data;
         const normalizedEmail = email.toLowerCase();
 
+        const prisma = await getPrisma();
         const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
         if (!user) return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
 
