@@ -30,5 +30,5 @@ export function middleware(req) {
 }
 
 export const config = {
-    matcher: ['/((admin|(admin)/:path*))', '/(admin)(/:path*)']
+    matcher: ['/admin/:path*']
 };
