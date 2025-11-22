@@ -23,6 +23,7 @@ import 'simplebar-react/dist/simplebar.min.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import '@/assets/scss/app.scss';
 import { ibmPlexSans, inter, nunito, poppins, publicSans, roboto } from '@/helpers/fonts';
+import { AuthProvider } from '@/context/useAuth';
 export const metadata = {
   title: {
     default: appTitle,
@@ -35,9 +36,11 @@ const RootLayout = ({
   children
 }) => {
   return <html lang="en" className={`${nunito.variable} ${publicSans.variable} ${poppins.variable} ${roboto.variable} ${inter.variable} ${ibmPlexSans.variable}`}>
-            <body>
-                <AppWrapper>{children}</AppWrapper>
-            </body>
-        </html>;
+    <body>
+      <AuthProvider>
+        <AppWrapper>{children}</AppWrapper>
+      </AuthProvider>
+    </body>
+  </html>;
 };
 export default RootLayout;
