@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 import { NextResponse } from 'next/server';
 import { getTokenFromRequest, verifyJwt } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
