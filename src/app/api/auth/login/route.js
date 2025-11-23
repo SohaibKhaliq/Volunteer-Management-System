@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 import { getPrisma } from '@/lib/prisma';
 import { comparePassword, signJwt, createTokenCookie } from '@/lib/auth';
 import { NextResponse } from 'next/server';
